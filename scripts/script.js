@@ -39,22 +39,63 @@ function afficherEmail(nom, email, score) {
   location.href = mailto;
 }
 
-let form = document.querySelector("form");
-let baliseNom = document.getElementById("nom");
-let baliseMail = document.getElementById("email");
-
+/**
+ * Cette fonction prend un nom en paramètre et valide qu'il est au bon format
+ * ici : deux caractères au minimum
+ * @param {string} nom
+ * @throws {Error}
+ */
 function validerNom(nom) {
-  if (nom.length >= 2) {
-    return true;
+  if (nom.length < 2) {
+    throw new Error("Le nom doit contenir au moins deux caractères");
   }
-  return false;
 }
+
+/**
+ * Cette fonction prend un email en paramètre et valide qu'il est au bon format.
+ * @param {string} email
+ * @throws {Error}}
+ */
 function validerEmail(email) {
-  let regExp = new RegExp("^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z0-9.-]+");
-  if (regExp.test(email)) {
-    return true;
+  let emailRegExp = new RegExp("[a-z0-9._-]+@[a-z0-9._-]+\\.[a-z0-9._-]+");
+  if (!emailRegExp.test(email)) {
+    throw new Error("L'email n'est pas valide");
   }
-  return false;
+}
+
+function afficherMessageErreur(message) {
+  // On récupère l'id de spanErreurMessage
+  let spanErreurMessage = document.getElementById("erreurMessage");
+
+  // Si spanErreurMessage n'existe pas, on le crée
+  if (!spanErreurMessage) {
+    let popup = document.querySelector(".popup");
+    spanErreurMessage = document.createElement("span");
+    spanErreurMessage.id = "erreurMessage";
+
+    // On l'ajoute dans la div .popup
+    popup.append(spanErreurMessage);
+  }
+
+  // On affiche le message à l'interieur
+  spanErreurMessage.innerText = message;
+}
+
+function gererFormulaire(scoreEmail) {
+  try {
+    let baliseNom = document.getElementById("nom");
+    let nom = baliseNom.value;
+    validerNom(nom);
+
+    let baliseEmail = document.getElementById("email");
+    let email = baliseEmail.value;
+    validerEmail(email);
+
+    afficherMessageErreur("");
+    afficherEmail(nom, email, scoreEmail);
+  } catch (erreur) {
+    afficherMessageErreur(erreur.message);
+  }
 }
 
 /**
@@ -106,27 +147,13 @@ function lancerJeu() {
     });
   }
 
-  afficherResultat(score, i);
-
+  // Gestion de l'événement submit sur le formulaire de partage.
   let form = document.querySelector("form");
-
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-
-    let baliseNom = document.getElementById("nom");
-    let nom = baliseNom.value;
-
-    let baliseMail = document.getElementById("email");
-    let email = baliseMail.value;
-
-    console.log(nom, email);
-
-    if (validerNom(nom) && validerEmail(email)) {
-      let scoreEmail = `${score} / ${i}`;
-
-      afficherEmail(nom, email, scoreEmail);
-    } else {
-      console.log("Erreur");
-    }
+    let scoreEmail = `${score} / ${i}`;
+    gererFormulaire(scoreEmail);
   });
+
+  afficherResultat(score, i);
 }
